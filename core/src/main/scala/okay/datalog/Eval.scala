@@ -218,5 +218,16 @@ object Eval:
       case Literal.Neg(a)          => !rels(a.pred).contains(a.args.map(value(_, b)))
       case Literal.Cmp("=", x, y)  => value(x, b) == value(y, b)
       case Literal.Cmp("!=", x, y) => value(x, b) != value(y, b)
-      case Literal.Cmp(op, _, _)   => throw IllegalArgumentException(s"unknown comparison $op")
+      // the order comparisons: by number when both sides are numbers, else by text
+      case Literal.Cmp(op, x, y) =>
+        val (l, r) = (value(x, b), value(y, b))
+        val c = (l.toDoubleOption, r.toDoubleOption) match
+          case (Some(a), Some(d)) => java.lang.Double.compare(a, d)
+          case _ => l.compareTo(r)
+        op match
+          case "<" => c < 0
+          case "<=" => c <= 0
+          case ">" => c > 0
+          case ">=" => c >= 0
+          case other => throw IllegalArgumentException(s"unknown comparison $other")
       case Literal.Pos(_)          => true

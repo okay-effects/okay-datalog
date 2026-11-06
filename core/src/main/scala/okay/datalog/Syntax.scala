@@ -155,6 +155,10 @@ private final class Parser(s: String):
       val first = term()
       ws()
       if peek("!=") then { i += 2; Literal.Cmp("!=", first, term()) }
+      else if peek("<=") then { i += 2; Literal.Cmp("<=", first, term()) }
+      else if peek(">=") then { i += 2; Literal.Cmp(">=", first, term()) }
+      else if peek("<") then { i += 1; Literal.Cmp("<", first, term()) }
+      else if peek(">") then { i += 1; Literal.Cmp(">", first, term()) }
       else if peek("=") then { i += 1; Literal.Cmp("=", first, term()) }
       else
         i = save

@@ -95,3 +95,14 @@ class DatalogSuite extends munit.FunSuite:
           assertEquals(Fact(d.rule.head.pred, head), s.fact)
       seen += s.fact
     assert(r.proof(Fact("path", Vector(s"n$n", "n1"))).isEmpty)
+
+/** the order comparisons: by number when both sides are numbers, by text otherwise */
+class OrderSuite extends munit.FunSuite:
+  test("<, <=, >, >= — numbers by value, words by text"):
+    val p = Parse.program("""big(X) :- n(X, V), V > 100. small(X) :- n(X, V), V <= 100. early(X) :- w(X, W), W < "m".""").toOption.get
+    val facts = Vector(Fact("n", Vector("a", "120")), Fact("n", Vector("b", "80")), Fact("n", Vector("c", "100")), Fact("n", Vector("d", "1000")),
+      Fact("w", Vector("x", "apple")), Fact("w", Vector("y", "zebra")))
+    val r = Eval.run(p, facts).toOption.get
+    assertEquals(r.query(Parse.atom("big(X)").toOption.get).map(_("X")).toSet, Set("a", "d"))
+    assertEquals(r.query(Parse.atom("small(X)").toOption.get).map(_("X")).toSet, Set("b", "c"))
+    assertEquals(r.query(Parse.atom("early(X)").toOption.get).map(_("X")).toSet, Set("x"))
